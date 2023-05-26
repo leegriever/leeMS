@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include "message_slot_koren.h"
+#include "message_slot.h"
 
 
 typedef enum errors {
