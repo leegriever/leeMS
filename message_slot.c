@@ -251,7 +251,9 @@ static long device_ioctl( struct   file* file,
 static int device_release( struct inode* inode,
                            struct file*  file)
 {
-  kfree(file->private_data);
+  fd_info * info;
+  info = file->private_data;
+  kfree(info);
   return SUCCESS;
 }
 
