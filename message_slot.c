@@ -126,7 +126,7 @@ static int device_open( struct inode* inode,
     }
   info->minor = curr_minor;
   info->id = 0;    // channel_id for file will known only in ioctl
-  file->private_data = (void *) info;
+  file->private_data = info;
 
   return SUCCESS;
 }
@@ -213,7 +213,9 @@ static ssize_t device_write( struct file*       file,
   if (curr_channel == NULL){
     return FAIL;
   }
-
+  if (curr_channel->msg_len != 0){
+    memset(curr_channel->msg, 0, MAX_MSG_LEN);
+  }
   for (i = 0; i < length; i++){
     check = get_user((curr_channel->msg)[i], &buffer[i]) < 0;
     if (check != 0){
