@@ -215,7 +215,7 @@ static ssize_t device_write( struct file*       file,
   }
 
   for (i = 0; i < length; i++){
-    check = put_user((curr_channel->msg)[i], &buffer[i]) < 0;
+    check = get_user((curr_channel->msg)[i], &buffer[i]) < 0;
     if (check != 0){
       return FAIL;
     }
