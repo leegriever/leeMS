@@ -86,7 +86,7 @@ static channel * find_channel(fd_info * info){
     if (curr_channel != NULL){
       return curr_channel;
     }
-    curr_channel = kmalloc(sizeof(channel), GFP_KERNEL);
+    curr_channel = (channel *)kmalloc(sizeof(channel), GFP_KERNEL);
     if (curr_channel == NULL){
       return NULL;
     }
