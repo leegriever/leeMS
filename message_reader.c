@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <sys/ioctl.h>
+#include <errno.h>
+#include <sys/fcntl.h>
+
 
 #include "message_slot.h"
 
@@ -32,7 +34,7 @@ void checker(int val1, int val2, e op){
         perror("Error - failed to set channel id");
         exit(1);
     }
-    if (op == READ && val1 <= val2){
+    if (op == READ && val1 < val2){
         perror("Error - failed reading file");
         exit(1);
     }
@@ -52,10 +54,10 @@ int main(int argc, char* argv[]){
     fd = open(argv[1], O_RDONLY);
     // check file open success 
     checker(fd, 0, OPEN);
-    channel_id = (unsigned long) atoi(argv[2]);
+    channel_id = atol(argv[2]);
     // check ioctl sucsses
     checker(ioctl(fd, MSG_SLOT_CHANNEL, channel_id), 0, ID);
-    n_bytes = read(fd, buffer, 128);
+    n_bytes = read(fd, buffer, MAX_MSG_LEN);
     printf("n_bytes: %d\n", n_bytes);
     // check reading sucsses
     checker(n_bytes, 0, READ);
@@ -64,8 +66,7 @@ int main(int argc, char* argv[]){
         perror("Error - failed printing");
         exit(1);
     }
-    // check closing sucsses
-    checker(close(fd), -1, CLOSE);
+    close(fd);
     
     exit(0);
 }

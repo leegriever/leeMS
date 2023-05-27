@@ -1,5 +1,3 @@
-# create object and kernel loadable module)
-
 obj-m := message_slot.o
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)

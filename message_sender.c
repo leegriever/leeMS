@@ -23,7 +23,7 @@ void checker(int val1, int val2, e op){
         perror("Error - Invalid number of command line arguments");
         exit(1);
     }
-    if (op == OPEN && val1 == val2){
+    if (op == OPEN && val1 < val2){
         perror("Error - failed to open file");
         exit(1);
     }
@@ -44,8 +44,8 @@ int main(int argc, char* argv[]){
     checker(argc, 4, LEN);
     fd = open(argv[1], O_WRONLY);
     // check file open success 
-    checker(fd, -1, OPEN);
-    channel_id = (unsigned long) atoi(argv[2]);
+    checker(fd, 0, OPEN);
+    channel_id = atol(argv[2]);
     // check ioctl sucsses
     checker(ioctl(fd, MSG_SLOT_CHANNEL, channel_id), 0, ID);
     // check printing sucsses
@@ -53,7 +53,6 @@ int main(int argc, char* argv[]){
         perror("Error - failed closing file");
         exit(1);
     }
-    // check closing sucsses
     close(fd);
     
     exit(0);
