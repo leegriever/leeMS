@@ -1,5 +1,3 @@
-// This code is based on rec06 
-
 #undef __KERNEL__
 #define __KERNEL__
 #undef MODULE
