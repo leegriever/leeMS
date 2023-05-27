@@ -120,7 +120,7 @@ static ssize_t device_read( struct file* file,
   if (!access_ok(buffer, length)){
     return -EINVAL;
   }
-  // check oif a channel has been set on the fd
+  // check if a channel has been set on the fd
   if (info == NULL || info->id == 0){
     return -EINVAL;
   }
