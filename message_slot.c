@@ -7,6 +7,13 @@
 
 #include <linux/slab.h>
 #include <linux/uaccess.h>  /* for get_user and put_user */
+#include <linux/kernel.h>   /* We're doing kernel work */
+#include <linux/module.h>   /* Specifically, a module */
+#include <linux/fs.h>       /* for register_chrdev */
+#include <linux/string.h>   /* for memset. NOTE - not string.h!*/
+#include <linux/init.h>
+#include <linux/errno.h>
+#include <linux/ioctl.h>
 
 //Our custom definitions of IOCTL operations
 #include "message_slot.h" 

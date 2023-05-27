@@ -1,10 +1,7 @@
 #ifndef MSG_SLOT_H
 #define MSG_SLOT_H
 
-#include <linux/kernel.h>   /* We're doing kernel work */
-#include <linux/module.h>   /* Specifically, a module */
-#include <linux/fs.h>       /* for register_chrdev */
-#include <linux/string.h>   /* for memset. NOTE - not string.h!*/
+
 // The major device number
 #define MAJOR_NUM 235
 #define MAX_MSG_LEN 128
