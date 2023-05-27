@@ -141,7 +141,7 @@ static ssize_t device_read( struct file* file,
 {
   int i;
   int check;
-  channel * curr_channel;
+  channel * curr_channel = NULL;  
   fd_info * info = (fd_info *)file->private_data;
 
   // check oif a channel has been set on the fd
@@ -177,7 +177,7 @@ static ssize_t device_read( struct file* file,
       return -EFAULT;
     }
   }
-  return curr_channel->msg_len;
+  return i;
 }
 
 //---------------------------------------------------------------
@@ -224,7 +224,7 @@ static ssize_t device_write( struct file*       file,
   }
   curr_channel->msg_len = length;
 
-  return curr_channel->msg_len;
+  return length;
 }
 
 //----------------------------------------------------------------
@@ -292,20 +292,22 @@ static int __init ms_init(void)
 static void __exit ms_cleanup(void)
 {
   int i;
-  channel * curr_channel = NULL;
-  channel * tmp_channel = NULL;
+  slot * curr_slot;
+  channel * curr_channel;
+  channel * tmp_channel;
 
   for (i = 0; i < MAX_SLOTS + 1; i++){
-    if (slots[i] == NULL){
+    curr_slot = slots[i];
+    if (curr_slot == NULL){
       continue;
     }
-    curr_channel = slots[i]->head;
+    curr_channel = curr_slot->head;
     while (curr_channel != NULL){
       tmp_channel = curr_channel->next;
       kfree(curr_channel);
       curr_channel = tmp_channel;
     }
-    kfree(slots[i]);
+    kfree(curr_slot);
   }
   // Unregister the device
   unregister_chrdev(MAJOR_NUM, DEVICE_RANGE_NAME);
