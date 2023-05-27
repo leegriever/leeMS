@@ -86,13 +86,13 @@ static channel * find_channel(fd_info * info){
     if (curr_channel != NULL){
       return curr_channel;
     }
-    curr_channel->next = kmalloc(sizeof(channel), GFP_KERNEL);
-    if (curr_channel->next == NULL){
+    curr_channel = kmalloc(sizeof(channel), GFP_KERNEL);
+    if (curr_channel == NULL){
       return NULL;
     }
-    curr_channel->next->id = info->id;
-    curr_channel->next->next = NULL;
-    curr_channel->next->msg_len = 0;
+    curr_channel->id = info->id;
+    curr_channel->next = NULL;
+    curr_channel->msg_len = 0;
   }
   return curr_channel;
 }
