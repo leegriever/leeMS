@@ -153,7 +153,12 @@ static ssize_t device_read( struct file* file,
 
   // check oif a channel has been set on the fd
   if (info == NULL || info->id == 0){
-    return -1;
+    if (info == NULL){
+      return -1;
+    }
+    if (info->id == 0){
+      return -10;
+    }
     // return -EINVAL;
   }
   // user's buffer vallidate
