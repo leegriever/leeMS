@@ -56,6 +56,7 @@ int main(int argc, char* argv[]){
     // check ioctl sucsses
     checker(ioctl(fd, MSG_SLOT_CHANNEL, channel_id), 0, ID);
     n_bytes = read(fd, buffer, 128);
+    printf("n_bytes: %d\n", n_bytes);
     // check reading sucsses
     checker(n_bytes, 0, READ);
     // check printing sucsses

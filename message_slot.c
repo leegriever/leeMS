@@ -146,35 +146,42 @@ static ssize_t device_read( struct file* file,
 
   // check oif a channel has been set on the fd
   if (info == NULL || info->id == 0){
-    return -EINVAL;
+    return -1;
+    // return -EINVAL;
   }
   // user's buffer vallidate
   if (buffer == NULL){
-    return -EFAULT;
+    return -2;
+    // return -EFAULT;
   }
   // DELETE !!!! check access_ok val 
   // explanation for acsses_ok use here
   //https://stackoverflow.com/questions/6887057/linux-kernel-userspace-buffers-do-access-ok-and-wait-create-a-race-condition
   if (!access_ok(buffer, length)){
-    return -EINVAL;
+    return -3;
+    // return -EINVAL;
   }
   
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
-    return -EFAULT;
+    return -4;
+    // return -EFAULT;
   }
   if (curr_channel->msg_len == 0){
-    return -EWOULDBLOCK;
+    return -5;
+    // return -EWOULDBLOCK;
   }
   if (length < (curr_channel->msg_len)){
-    return -ENOSPC;
+    return -6;
+    // return -ENOSPC;
   }
 
   for (i = 0; i < curr_channel->msg_len; i++){
     // DELETE !!! CHECK if it works, MIGHT NEED TO SPLIT
     check =  put_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
-      return -EFAULT;
+      return -7;
+      // return -EFAULT;
     }
   }
   return i;
