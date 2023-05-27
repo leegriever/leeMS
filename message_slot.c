@@ -4,11 +4,11 @@
 #define MODULE
 
 #include <linux/slab.h>
-#include <linux/uaccess.h>  /* for get_user and put_user */
-#include <linux/kernel.h>   /* We're doing kernel work */
-#include <linux/module.h>   /* Specifically, a module */
-#include <linux/fs.h>       /* for register_chrdev */
-#include <linux/string.h>   /* for memset. NOTE - not string.h!*/
+#include <linux/uaccess.h>  
+#include <linux/kernel.h>   
+#include <linux/module.h>   
+#include <linux/fs.h>       
+#include <linux/string.h>   
 #include <linux/init.h>
 #include <linux/errno.h>
 #include <linux/ioctl.h>
@@ -36,51 +36,17 @@ typedef struct file_info
   unsigned long id;
 } fd_info;
 
-typedef enum errors{
-  REG,
-  ARG,
-  MINOR,
-  ALLOC,
-  MSG_LEN,
-  NO_MESSAGE,
-  BUFF_LEN,
-} error;
 
-// int validity(int num, error e);
 static channel * find_channel(fd_info * info);
 
 static slot* slots[MAX_SLOTS+1] = {NULL};
 
 
-// int validity(int num, error e){
-//   if (e == MINOR){
-//     if (num > MAX_SLOTS || num < 0){
-//       printk(KERN_ERR "Error - illegal minor number  %d\n", num);
-//       return FAIL;
-//     }
-//   }
-//   if (e == ARG && num){
-//     return -EINVAL;
-//   }
-//   if (e == NO_MESSAGE && num == 0){
-//     return -EWOULDBLOCK;
-//   }
-//   if (e == BUFF_LEN && num){
-//     return -ENOSPC;
-//   }
-//   if (e == REG && num){
-//     return FAIL;
-//   }
-//   if (e == MSG_LEN){
-//     if (num <= 0 || num > MAX_MSG_LEN){
-//       return -EMSGSIZE;
-//     }
-//   }
-// }
-
 static channel * find_channel(fd_info * info){
-  channel * curr_channel = NULL;
-  slot * curr_slot = NULL;
+  channel * curr_channel;
+  channel * head_channel;
+  slot * curr_slot;
+
   if (info != NULL){
     // maybe prob is here
     curr_slot = slots[info->minor];
@@ -92,13 +58,14 @@ static channel * find_channel(fd_info * info){
     if (curr_channel != NULL){
       return curr_channel;
     }
-    curr_channel = (channel*)kmalloc(sizeof(channel), GFP_KERNEL);
-    if (curr_channel == NULL){
+    head_channel = (channel*)kmalloc(sizeof(channel), GFP_KERNEL);
+    if (head_channel == NULL){
       return NULL;
     }
-    curr_channel->id = info->id;
-    curr_channel->next = NULL;
-    curr_channel->msg_len = 0;
+    head_channel->id = info->id;
+    head_channel->next = curr_channel;
+    head_channel->msg_len = 0;
+    curr_slot->head = head_channel;
   }
   return curr_channel;
 }
