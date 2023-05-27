@@ -111,15 +111,11 @@ static int device_open( struct inode* inode,
   slot *curr_slot = NULL;
   fd_info * info = NULL;
   int curr_minor = iminor(inode);
-  if (curr_minor > MAX_SLOTS || curr_minor < 0){
-      printk(KERN_ERR "Error - illegal minor number  %d\n", curr_minor);
-      return -EFAULT;
-    }
+  
   // slot doesn't exist
   if (slots[curr_minor] == NULL){
     curr_slot = (slot*)kmalloc(sizeof(slot), GFP_KERNEL);
     if (curr_slot == NULL){
-      printk(KERN_ERR "Error - failed allocating memory \n");
       return -EFAULT;
     }
     curr_slot->minor = curr_minor;
@@ -128,7 +124,6 @@ static int device_open( struct inode* inode,
   }
   info = (fd_info *)kmalloc(sizeof(fd_info), GFP_KERNEL);
   if (info == NULL){
-      printk(KERN_ERR "Error - failed allocating memory \n");
       return -EFAULT;
     }
   info->minor = curr_minor;
@@ -149,51 +144,36 @@ static ssize_t device_read( struct file* file,
   int i;
   int check;
   channel * curr_channel = NULL;  
-  fd_info * info = (fd_info *)file->private_data;
+  fd_info * info = NULL;
 
-  // check oif a channel has been set on the fd
-  if (info == NULL || info->id == 0){
-    if (info == NULL){
-      return -1;
-    }
-    if (info->id == 0){
-      return -10;
-    }
-    // return -EINVAL;
-  }
-  // user's buffer vallidate
   if (buffer == NULL){
-    return -2;
-    // return -EFAULT;
+    return -EFAULT;
   }
-  // DELETE !!!! check access_ok val 
   // explanation for acsses_ok use here
   //https://stackoverflow.com/questions/6887057/linux-kernel-userspace-buffers-do-access-ok-and-wait-create-a-race-condition
   if (!access_ok(buffer, length)){
-    return -3;
-    // return -EINVAL;
+    return -EINVAL;
   }
-  
+  info = (fd_info *)(file->private_data);
+  // check oif a channel has been set on the fd
+  if (info == NULL || info->id == 0){
+    return -EINVAL;
+  }
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
-    return -4;
-    // return -EFAULT;
+    return -EFAULT;
   }
   if (curr_channel->msg_len == 0){
-    return -5;
-    // return -EWOULDBLOCK;
+    return -EWOULDBLOCK;
   }
   if (length < (curr_channel->msg_len)){
-    return -6;
-    // return -ENOSPC;
+    return -ENOSPC;
   }
 
   for (i = 0; i < curr_channel->msg_len; i++){
-    // DELETE !!! CHECK if it works, MIGHT NEED TO SPLIT
     check =  put_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
-      return -7;
-      // return -EFAULT;
+      return -EFAULT;
     }
   }
   return i;
@@ -209,13 +189,9 @@ static ssize_t device_write( struct file*       file,
 {
   int i;
   int check;
-  channel * curr_channel;
-  fd_info * info = (fd_info *)file->private_data;
+  channel * curr_channel = NULL;
+  fd_info * info = NULL;
   
-  // check if a channel has been set on the fd
-  if (info == NULL || info->id == 0){
-    return -EINVAL;
-  }
   if (buffer == NULL){
     return -EFAULT;
   }
@@ -224,10 +200,15 @@ static ssize_t device_write( struct file*       file,
   if (!access_ok(buffer, length)){
     return -EINVAL;
   }
-  // validate msg len
-  if (length <= 0 || length > MAX_MSG_LEN){
-      return -EMSGSIZE;
-    }
+   // validate msg len
+  if (length < 0 || length > MAX_MSG_LEN){
+    return -EMSGSIZE;
+  }
+  info = (fd_info *)(file->private_data);
+  // check if a channel has been set on the fd
+  if (info == NULL || info->id == 0){
+    return -EINVAL;
+  }
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
     return -EFAULT;
@@ -251,7 +232,7 @@ static long device_ioctl( struct   file* file,
                           unsigned int   ioctl_command_id,
                           unsigned long  ioctl_param )
 {
-  fd_info * info;
+  fd_info * info = NULL;
   // can change this with validity ARG
   if ((ioctl_command_id != MSG_SLOT_CHANNEL) || (ioctl_param == 0)){
     return -EINVAL;
@@ -300,7 +281,7 @@ static int __init ms_init(void)
 
   // Negative values signify an error
   if( rc < 0 ) {
-    printk(KERN_ERR "%s registraion failed for  %d\n", DEVICE_FILE_NAME,MAJOR_NUM);
+    printk(KERN_ERR "%s registraion failed for  %d\n", DEVICE_FILE_NAME, MAJOR_NUM);
     return rc;
   }
 

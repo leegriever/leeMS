@@ -1,6 +1,8 @@
 #ifndef MSG_SLOT_H
 #define MSG_SLOT_H
 
+#include <linux/ioctl.h>
+
 
 // The major device number
 #define MAJOR_NUM 235
