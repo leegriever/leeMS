@@ -86,8 +86,7 @@ static channel * find_channel(fd_info * info){
     if (curr_channel != NULL){
       return curr_channel;
     }
-    // channel wasnwt created yet
-    curr_channel->next = (channel*) kmalloc(sizeof(channel), GFP_KERNEL);
+    curr_channel->next = kmalloc(sizeof(channel), GFP_KERNEL);
     if (curr_channel->next == NULL){
       return NULL;
     }
@@ -126,7 +125,7 @@ static int device_open( struct inode* inode,
       return FAIL;
     }
   info->minor = curr_minor;
-  info->id = 0;    // channel_id for file will be known only in ioctl
+  info->id = 0;    // channel_id for file will known only in ioctl
   file->private_data = info;
 
   return SUCCESS;
@@ -173,7 +172,7 @@ static ssize_t device_read( struct file* file,
 
   for (i = 0; i < curr_channel->msg_len; i++){
     // DELETE !!! CHECK if it works, MIGHT NEED TO SPLIT
-    check =  put_user(curr_channel->msg[i], &buffer[i]);
+    check =  put_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
       return FAIL;
     }
@@ -214,12 +213,11 @@ static ssize_t device_write( struct file*       file,
   if (curr_channel == NULL){
     return FAIL;
   }
-  // there is already a msg in channel, delete it
   if (curr_channel->msg_len != 0){
     memset(curr_channel->msg, 0, MAX_MSG_LEN);
   }
   for (i = 0; i < length; i++){
-    check = get_user(curr_channel->msg[i], &buffer[i]);
+    check = get_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
       return FAIL;
     }
@@ -294,24 +292,23 @@ static int __init ms_init(void)
 static void __exit ms_cleanup(void)
 {
   int i;
-  channel * curr_channel;
-  channel * tmp_channel;
+  channel * curr_channel = NULL;
+  channel * tmp_channel = NULL;
 
   for (i = 0; i < MAX_SLOTS + 1; i++){
-    if (slots[i] != NULL){
-      curr_channel = (channel *) slots[i]->head;
-      if (curr_channel == NULL){
-        continue;
-      }
+    if (slots[i] == NULL){
+      continue;
+    }
+    curr_channel = slots[i]->head;
+    while (curr_channel != NULL){
       tmp_channel = curr_channel->next;
-      while (curr_channel != NULL){
-        tmp_channel = curr_channel->next;
-        kfree(curr_channel);
-        curr_channel = tmp_channel;
+      kfree(curr_channel->next);
+      curr_channel = tmp_channel;
     }
-    }
+    kfree(slots[i]);
   }
-
+  kfree(curr_channel);
+  kfree(tmp_channel);
   // Unregister the device
   unregister_chrdev(MAJOR_NUM, DEVICE_RANGE_NAME);
 }
