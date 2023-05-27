@@ -80,8 +80,9 @@ static slot* slots[MAX_SLOTS+1] = {NULL};
 
 static channel * find_channel(fd_info * info){
   channel * curr_channel = NULL;
-  slot * curr_slot;
+  slot * curr_slot = NULL;
   if (info != NULL){
+    // maybe prob is here
     curr_slot = slots[info->minor];
     curr_channel = curr_slot->head;
     while ((curr_channel != NULL) && (curr_channel->id != info->id))
@@ -91,7 +92,7 @@ static channel * find_channel(fd_info * info){
     if (curr_channel != NULL){
       return curr_channel;
     }
-    curr_channel = (channel *)kmalloc(sizeof(channel), GFP_KERNEL);
+    curr_channel = (channel*)kmalloc(sizeof(channel), GFP_KERNEL);
     if (curr_channel == NULL){
       return NULL;
     }
@@ -114,15 +115,15 @@ static int device_open( struct inode* inode,
   if (slots[curr_minor] == NULL){
     curr_slot = (slot*)kmalloc(sizeof(slot), GFP_KERNEL);
     if (curr_slot == NULL){
-      return -EFAULT;
+      return -ENOMEM;
     }
     curr_slot->minor = curr_minor;
     curr_slot->head = NULL;
     slots[curr_minor] = curr_slot;
   }
-  info = (fd_info *)kmalloc(sizeof(fd_info), GFP_KERNEL);
+  info = (fd_info*)kmalloc(sizeof(fd_info), GFP_KERNEL);
   if (info == NULL){
-      return -EFAULT;
+      return -ENOMEM;
     }
   info->minor = curr_minor;
   info->id = 0;    // channel_id for file will known only in ioctl
@@ -142,7 +143,7 @@ static ssize_t device_read( struct file* file,
   int i;
   int check;
   channel * curr_channel = NULL;  
-  fd_info * info = NULL;
+  fd_info * info = (fd_info*)(file->private_data);
 
   if (buffer == NULL){
     return -EFAULT;
@@ -152,7 +153,6 @@ static ssize_t device_read( struct file* file,
   if (!access_ok(buffer, length)){
     return -EINVAL;
   }
-  info = (fd_info *)(file->private_data);
   // check oif a channel has been set on the fd
   if (info == NULL || info->id == 0){
     return -EINVAL;
@@ -188,7 +188,7 @@ static ssize_t device_write( struct file*       file,
   int i;
   int check;
   channel * curr_channel = NULL;
-  fd_info * info = NULL;
+  fd_info * info = (fd_info*)(file->private_data);
   
   if (buffer == NULL){
     return -EFAULT;
@@ -202,7 +202,6 @@ static ssize_t device_write( struct file*       file,
   if (length < 0 || length > MAX_MSG_LEN){
     return -EMSGSIZE;
   }
-  info = (fd_info *)(file->private_data);
   // check if a channel has been set on the fd
   if (info == NULL || info->id == 0){
     return -EINVAL;
@@ -235,7 +234,7 @@ static long device_ioctl( struct   file* file,
   if ((ioctl_command_id != MSG_SLOT_CHANNEL) || (ioctl_param == 0)){
     return -EINVAL;
   }
-  info = (fd_info *)file->private_data;
+  info = (fd_info*)file->private_data;
   if (info == NULL){
     return -EINVAL;
   }
