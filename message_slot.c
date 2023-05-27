@@ -302,13 +302,11 @@ static void __exit ms_cleanup(void)
     curr_channel = slots[i]->head;
     while (curr_channel != NULL){
       tmp_channel = curr_channel->next;
-      kfree(curr_channel->next);
+      kfree(curr_channel);
       curr_channel = tmp_channel;
     }
     kfree(slots[i]);
   }
-  kfree(curr_channel);
-  kfree(tmp_channel);
   // Unregister the device
   unregister_chrdev(MAJOR_NUM, DEVICE_RANGE_NAME);
 }
