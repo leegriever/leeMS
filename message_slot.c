@@ -106,14 +106,14 @@ static int device_open( struct inode* inode,
   int curr_minor = iminor(inode);
   if (curr_minor > MAX_SLOTS || curr_minor < 0){
       printk(KERN_ERR "Error - illegal minor number  %d\n", curr_minor);
-      return FAIL;
+      return -EFAULT;
     }
   // slot doesn't exist
   if (slots[curr_minor] == NULL){
     curr_slot = (slot*)kmalloc(sizeof(slot), GFP_KERNEL);
     if (curr_slot == NULL){
       printk(KERN_ERR "Error - failed allocating memory \n");
-      return FAIL;
+      return -EFAULT;
     }
     curr_slot->minor = curr_minor;
     curr_slot->head = NULL;
@@ -122,11 +122,11 @@ static int device_open( struct inode* inode,
   info = (fd_info *)kmalloc(sizeof(fd_info), GFP_KERNEL);
   if (info == NULL){
       printk(KERN_ERR "Error - failed allocating memory \n");
-      return FAIL;
+      return -EFAULT;
     }
   info->minor = curr_minor;
   info->id = 0;    // channel_id for file will known only in ioctl
-  file->private_data = info;
+  file->private_data = (void *) info;
 
   return SUCCESS;
 }
@@ -150,7 +150,7 @@ static ssize_t device_read( struct file* file,
   }
   // user's buffer vallidate
   if (buffer == NULL){
-    return FAIL;
+    return -EFAULT;
   }
   // DELETE !!!! check access_ok val 
   // explanation for acsses_ok use here
@@ -161,7 +161,7 @@ static ssize_t device_read( struct file* file,
   
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
-    return FAIL;
+    return -EFAULT;
   }
   if (curr_channel->msg_len == 0){
     return -EWOULDBLOCK;
@@ -174,7 +174,7 @@ static ssize_t device_read( struct file* file,
     // DELETE !!! CHECK if it works, MIGHT NEED TO SPLIT
     check =  put_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
-      return FAIL;
+      return -EFAULT;
     }
   }
   return curr_channel->msg_len;
@@ -198,7 +198,7 @@ static ssize_t device_write( struct file*       file,
     return -EINVAL;
   }
   if (buffer == NULL){
-    return FAIL;
+    return -EFAULT;
   }
   // explanation for acsses_ok use here
   //https://stackoverflow.com/questions/6887057/linux-kernel-userspace-buffers-do-access-ok-and-wait-create-a-race-condition
@@ -211,7 +211,7 @@ static ssize_t device_write( struct file*       file,
     }
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
-    return FAIL;
+    return -EFAULT;
   }
   if (curr_channel->msg_len != 0){
     memset(curr_channel->msg, 0, MAX_MSG_LEN);
@@ -219,7 +219,7 @@ static ssize_t device_write( struct file*       file,
   for (i = 0; i < length; i++){
     check = get_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
-      return FAIL;
+      return -EFAULT;
     }
   }
   curr_channel->msg_len = length;
