@@ -56,7 +56,7 @@ int main(int argc, char* argv[]){
     // check reading sucsses
     checker(n_bytes, 0, READ);
     // check printing sucsses
-    if (write(STDERR_FILENO, buffer, n_bytes) == -1){
+    if (write(STDOUT_FILENO, buffer, n_bytes) == -1){
         perror("Error - failed printing");
         exit(1);
     }
