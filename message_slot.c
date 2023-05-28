@@ -52,31 +52,40 @@ static slot* slots[MAX_SLOTS+1] = {NULL};
 
 static channel * find_channel(fd_info * info){
   channel * curr_channel;
-  channel * head_channel;
+  channel * prev_channel;
   slot * curr_slot;
 
-  if (info != NULL){
-    // maybe prob is here
-    curr_slot = slots[info->minor];
-    curr_channel = curr_slot->head;
-    while ((curr_channel != NULL) && (curr_channel->id != info->id))
-    {
-     curr_channel = curr_channel->next;
-    }
-    if (curr_channel != NULL){
-      return curr_channel;
-    }
-    head_channel = (channel*)kmalloc(sizeof(channel), GFP_KERNEL);
-    if (head_channel == NULL){
-      return NULL;
-    }
-    head_channel->id = info->id;
-    head_channel->next = curr_channel;
-    head_channel->msg_len = 0;
-    curr_slot->head = head_channel;
+  if (info == NULL){
+    return NULL;
   }
-  return head_channel;
+  curr_slot = slots[info->minor];
+  curr_channel = curr_slot->head;
+
+  while (curr_channel != NULL){
+      // channel is found
+      if (curr_channel->id == info->id){
+        return curr_channel;
+      }
+      prev_channel = curr_channel;
+      curr_channel = curr_channel->next;
+  }
+  curr_channel = (channel*)kmalloc(sizeof(channel), GFP_KERNEL);
+  if (curr_channel == NULL){
+    return NULL;
+  }
+  curr_channel->id = info->id;
+  curr_channel->msg_len = 0;
+  curr_channel->next = NULL;
+  if (curr_slot->head != NULL){
+    prev_channel->next = curr_channel;
+  }
+  else{
+    curr_slot->head = curr_channel;
+  }
+    
+  return curr_channel;
 }
+
 
 //================== DEVICE FUNCTIONS ===========================
 static int device_open( struct inode* inode,
