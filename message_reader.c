@@ -15,7 +15,6 @@ typedef enum errors {
   OPEN,
   ID,
   READ, 
-  CLOSE,
 } e;
 
 void checker(int val1, int val2, e op);
@@ -38,10 +37,6 @@ void checker(int val1, int val2, e op){
         perror("Error - failed reading file");
         exit(1);
     }
-    if (op == CLOSE && val1 == val2){
-        perror("Error - failed closing file");
-        exit(1);
-    }
 }
 
 int main(int argc, char* argv[]){
@@ -58,7 +53,6 @@ int main(int argc, char* argv[]){
     // check ioctl sucsses
     checker(ioctl(fd, MSG_SLOT_CHANNEL, channel_id), 0, ID);
     n_bytes = read(fd, buffer, MAX_MSG_LEN);
-    printf("n_bytes: %d\n", n_bytes);
     // check reading sucsses
     checker(n_bytes, 0, READ);
     // check printing sucsses

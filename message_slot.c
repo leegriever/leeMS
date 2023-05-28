@@ -18,6 +18,9 @@
 
 MODULE_LICENSE("GPL");
 
+// strcuts
+// channels are a linked list
+
 typedef struct channel {
     unsigned long id;
     struct  channel* next;
@@ -30,17 +33,22 @@ typedef struct slot {
     struct channel* head;
 } slot;
 
+// a struct for file-> private_data
+// contains minor aka the slot this file is linked to and channel id aka the channel this file is linked to 
+
 typedef struct file_info
 {
   int minor;
   unsigned long id;
 } fd_info;
 
-
+// auxilary functions declarations
 static channel * find_channel(fd_info * info);
 
 static slot* slots[MAX_SLOTS+1] = {NULL};
 
+// helper func to find the desired channel by the curr minor and ths channel_id
+// used by device_read and device_write
 
 static channel * find_channel(fd_info * info){
   channel * curr_channel;
@@ -67,7 +75,7 @@ static channel * find_channel(fd_info * info){
     head_channel->msg_len = 0;
     curr_slot->head = head_channel;
   }
-  return curr_channel;
+  return head_channel;
 }
 
 //================== DEVICE FUNCTIONS ===========================

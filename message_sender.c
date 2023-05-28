@@ -12,7 +12,6 @@ typedef enum errors {
   LEN,
   OPEN,
   ID,
-  CLOSE,
 } e;
 
 void checker(int val1, int val2, e op);
@@ -31,10 +30,6 @@ void checker(int val1, int val2, e op){
         perror("Error - failed to set channel id");
         exit(1);
     }
-    if (op == CLOSE && val1 == val2){
-        perror("Error - failed closing file");
-        exit(1);
-    }
 }
 
 int main(int argc, char* argv[]){
@@ -50,7 +45,7 @@ int main(int argc, char* argv[]){
     checker(ioctl(fd, MSG_SLOT_CHANNEL, channel_id), 0, ID);
     // check printing sucsses
     if (write(fd, argv[3], strlen(argv[3])) != strlen(argv[3])){
-        perror("Error - failed closing file");
+        perror("Error - failed writing to file");
         exit(1);
     }
     close(fd);
