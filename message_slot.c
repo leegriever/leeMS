@@ -113,7 +113,7 @@ static ssize_t device_read( struct file* file,
   fd_info * info = (fd_info*)(file->private_data);
 
   if (buffer == NULL){
-    return -EFAULT;
+    return -EINVAL;
   }
   // explanation for acsses_ok use here
   //https://stackoverflow.com/questions/6887057/linux-kernel-userspace-buffers-do-access-ok-and-wait-create-a-race-condition
@@ -126,7 +126,7 @@ static ssize_t device_read( struct file* file,
   }
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
-    return -EFAULT;
+    return -EINVAL;
   }
   if (curr_channel->msg_len == 0){
     return -EWOULDBLOCK;
@@ -138,7 +138,7 @@ static ssize_t device_read( struct file* file,
   for (i = 0; i < curr_channel->msg_len; i++){
     check =  put_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
-      return -EFAULT;
+      return -EINVAL;
     }
   }
   return i;
@@ -158,7 +158,7 @@ static ssize_t device_write( struct file*       file,
   fd_info * info = (fd_info*)(file->private_data);
   
   if (buffer == NULL){
-    return -EFAULT;
+    return -EINVAL;
   }
   // explanation for acsses_ok use here
   //https://stackoverflow.com/questions/6887057/linux-kernel-userspace-buffers-do-access-ok-and-wait-create-a-race-condition
@@ -166,7 +166,7 @@ static ssize_t device_write( struct file*       file,
     return -EINVAL;
   }
    // validate msg len
-  if (length < 0 || length > MAX_MSG_LEN){
+  if (length ==0 || length > MAX_MSG_LEN){
     return -EMSGSIZE;
   }
   // check if a channel has been set on the fd
@@ -175,7 +175,7 @@ static ssize_t device_write( struct file*       file,
   }
   curr_channel = find_channel(info);
   if (curr_channel == NULL){
-    return -EFAULT;
+    return -EINVAL;
   }
   if (curr_channel->msg_len != 0){
     memset(curr_channel->msg, 0, MAX_MSG_LEN);
@@ -183,7 +183,7 @@ static ssize_t device_write( struct file*       file,
   for (i = 0; i < length; i++){
     check = get_user((curr_channel->msg)[i], &buffer[i]);
     if (check != 0){
-      return -EFAULT;
+      return -EINVAL;
     }
   }
   curr_channel->msg_len = length;
